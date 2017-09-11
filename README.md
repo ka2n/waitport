@@ -11,4 +11,4 @@ wait until specific port is available.
 
 ## Install
 
-    go get github.com/ka2n/waitport
+    go get github.com/ka2n/waitport/cmd/waitport/...

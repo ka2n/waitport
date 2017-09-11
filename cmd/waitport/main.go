@@ -4,9 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"net"
 	"os"
 	"time"
+
+	"github.com/ka2n/waitport"
 )
 
 func main() {
@@ -32,7 +33,6 @@ func mainCLI() int {
 	fmt.Fprintf(logout, "Waiting %v (timeout: %v)\n", listen, timeout)
 
 	var (
-		dialer net.Dialer
 		ctx    context.Context
 		cancel context.CancelFunc
 	)
@@ -44,18 +44,10 @@ func mainCLI() int {
 		ctx = context.Background()
 	}
 
-CHECK:
-	for {
-		if conn, err := dialer.DialContext(ctx, "tcp", listen); err != nil {
-			time.Sleep(time.Second * 1)
-			if ctx.Err() != nil {
-				return 1
-			}
-			continue
-		} else {
-			conn.Close()
-		}
-		break CHECK
+	w := waitport.Watcher{Interval: time.Second}
+	if err := w.Do(ctx, listen); err != nil {
+		fmt.Fprintf(logout, "Error: %s", err)
+		return 1
 	}
 	return 0
 }
